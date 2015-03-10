@@ -2,12 +2,12 @@ var express = require('express')
 var app = express()
 
 app.set('views', __dirname+"/views");
-app.set('view engine', 'jade');
+app.engine('html', require('ejs').renderFile);
 
 app.use(express.static(__dirname + '/assets'));
 
 app.get('/', function (req, res) {
-  res.render("index.jade");
+  res.render("index.html");
 })
 
 var server = app.listen(3015, function () {
