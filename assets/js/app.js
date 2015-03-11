@@ -8,9 +8,9 @@ var BasicScene = Class.extend({
         this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
         this.scene.add(this.camera);
         this.light = new THREE.PointLight();
-        this.light.position.set(-256, 256, -256);
+        this.light.position.set(-300, 0, 500);
         this.scene.add(this.light);
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ antialiasing: true });
         // Define the container for the renderer
         this.container = $('#basic-scene');
         // Create the user's character
@@ -20,8 +20,8 @@ var BasicScene = Class.extend({
         this.scene.add(this.user.mesh);
         // Create the "world" : a 3D representation of the place we'll be putting our character in
         this.world = new World({
-            color: 0xF5F5F5
-        });
+            color: 0xF5F5F5,
+        },this.renderer);
         this.scene.add(this.world.mesh);
         // Define the size of the renderer
         this.setAspect();
@@ -123,8 +123,8 @@ var BasicScene = Class.extend({
     // Updating the camera to follow and look at a given Object3D / Mesh
     setFocus: function (object) {
         'use strict';
-        this.camera.position.set(object.position.x, object.position.y + 128, object.position.z - 256);
-        this.camera.lookAt(object.position);
+        this.camera.position.set(0, 0, 1000);
+        this.camera.lookAt(new THREE.Vector3(500,0,0));
     },
     // Update and draw the scene
     frame: function () {

@@ -3,10 +3,8 @@ var Character = Class.extend({
     init: function (args) {
         'use strict';
         // Set the different geometries composing the humanoid
-        var head = new THREE.SphereGeometry(32, 16, 16),
-            hand = new THREE.SphereGeometry(8, 8, 8),
-            foot = new THREE.SphereGeometry(16, 4, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-            nose = new THREE.SphereGeometry(4, 8, 8),
+        var head = new THREE.SphereGeometry(10, 16, 16),
+           
             // Set the material, the "skin"
             material = new THREE.MeshLambertMaterial(args);
         // Set the character modelisation object
@@ -17,36 +15,9 @@ var Character = Class.extend({
         this.head.position.y = 0;
         this.mesh.add(this.head);
         // Set and add its hands
-        this.hands = {
-            left:  new THREE.Mesh(hand, material),
-            right: new THREE.Mesh(hand, material)
-        };
-        this.hands.left.position.x = -40;
-        this.hands.left.position.y = -8;
-        this.hands.right.position.x = 40;
-        this.hands.right.position.y = -8;
-        this.mesh.add(this.hands.left);
-        this.mesh.add(this.hands.right);
-        // Set and add its feet
-        this.feet = {
-            left: new THREE.Mesh(foot, material),
-            right: new THREE.Mesh(foot, material)
-        };
-        this.feet.left.position.x = -20;
-        this.feet.left.position.y = -48;
-        this.feet.left.rotation.y = Math.PI / 4;
-        this.feet.right.position.x = 20;
-        this.feet.right.position.y = -48;
-        this.feet.right.rotation.y = Math.PI / 4;
-        this.mesh.add(this.feet.left);
-        this.mesh.add(this.feet.right);
-        // Set and add its nose
-        this.nose = new THREE.Mesh(nose, material);
-        this.nose.position.y = 0;
-        this.nose.position.z = 32;
-        this.mesh.add(this.nose);
-        // Set the vector of the current motion
+        
         this.direction = new THREE.Vector3(0, 0, 0);
+
         // Set the current animation step
         this.step = 0;
         // Set the rays : one vector for every potential direction
@@ -67,13 +38,14 @@ var Character = Class.extend({
     setDirection: function (controls) {
         'use strict';
         // Either left or right, and either up or down (no jump or dive (on the Y axis), so far ...)
-        var x = controls.left ? 1 : controls.right ? -1 : 0,
+        var x = controls.left ? -1 : controls.right ? 1 : 0,
             y = 0,
-            z = controls.up ? 1 : controls.down ? -1 : 0;
+            z = controls.up ? -1 : controls.down ? 1 : 0;
         this.direction.set(x, y, z);
     },
     // Process the character motions
     motion: function () {
+
         'use strict';
         // Update the directions if we intersect with an obstacle
         this.collision();
@@ -103,8 +75,8 @@ var Character = Class.extend({
             // And disable that direction if we do
             if (collisions.length > 0 && collisions[0].distance <= distance) {
                 // Yep, this.rays[i] gives us : 0 => up, 1 => up-left, 2 => left, ...
-                if ((i === 0 || i === 1 || i === 7) && this.direction.z === 1) { this.direction.setZ(0); } else if ((i === 3 || i === 4 || i === 5) && this.direction.z === -1) { this.direction.setZ(0); }
-                if ((i === 1 || i === 2 || i === 3) && this.direction.x === 1) { this.direction.setX(0); } else if ((i === 5 || i === 6 || i === 7) && this.direction.x === -1) { this.direction.setX(0); }
+                if ((i === 0 || i === 1 || i === 7) && this.direction.z === -1) { this.direction.setZ(0); } else if ((i === 3 || i === 4 || i === 5) && this.direction.z === 1) { this.direction.setZ(0); }
+                if ((i === 1 || i === 2 || i === 3) && this.direction.x === -1) { this.direction.setX(0); } else if ((i === 5 || i === 6 || i === 7) && this.direction.x === 1) { this.direction.setX(0); }
             }
         }
     },
@@ -135,10 +107,6 @@ var Character = Class.extend({
         this.mesh.position.z += this.direction.z * ((this.direction.x === 0) ? 4 : Math.sqrt(8));
         // Now some trigonometry, using our "step" property ...
         this.step += 1 / 4;
-        // ... to slightly move our feet and hands
-        this.feet.left.position.setZ(Math.sin(this.step) * 16);
-        this.feet.right.position.setZ(Math.cos(this.step + (Math.PI / 2)) * 16);
-        this.hands.left.position.setZ(Math.cos(this.step + (Math.PI / 2)) * 8);
-        this.hands.right.position.setZ(Math.sin(this.step) * 8);
+        
     }
 });
