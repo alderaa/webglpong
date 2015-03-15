@@ -17,7 +17,11 @@ var BasicScene = Class.extend({
         this.user = new Character({
             color: 0x7A43B6
         });
+        this.paddle = new Paddle({
+            color: 0x00CC00
+        });
         this.scene.add(this.user.mesh);
+        this.scene.add(this.paddle.mesh);
         // Create the "world" : a 3D representation of the place we'll be putting our character in
         this.world = new World({
             color: 0xF5F5F5,
@@ -37,12 +41,17 @@ var BasicScene = Class.extend({
         'use strict';
         // Within $'s methods, we won't be able to access "this"
         var user = this.user,
+            paddle = this.paddle,
             // State of the different controls
             controls = {
                 left: false,
                 up: false,
                 right: false,
-                down: false
+                down: false,
+                paddleUp: false,
+                paddleDown: false,
+                paddleLeft: false,
+                paddleRight: false
             };
         // When the user push a key down
         $(document).keydown(function (e) {
@@ -61,6 +70,22 @@ var BasicScene = Class.extend({
             case 40:
                 controls.down = true;
                 break;
+            case 87:
+                //w
+                controls.paddleUp = true;
+                break;
+            case 65:
+                //a
+                controls.paddleLeft = true;
+                break;
+            case 83:
+                //s
+                controls.paddleDown = true;
+                break;
+            case 68:
+                //d
+                controls.paddleRight = true;
+                break;
             default:
                 prevent = false;
             }
@@ -72,6 +97,7 @@ var BasicScene = Class.extend({
             }
             // Update the character's direction
             user.setDirection(controls);
+            paddle.setRotation(controls);
         });
         // When the user release a key up
         $(document).keyup(function (e) {
@@ -90,6 +116,22 @@ var BasicScene = Class.extend({
             case 40:
                 controls.down = false;
                 break;
+            case 87:
+                //w
+                controls.paddleUp = false;
+                break;
+            case 65:
+                //a
+                controls.paddleLeft = false;
+                break;
+            case 83:
+                //s
+                controls.paddleDown = false;
+                break;
+            case 68:
+                //d
+                controls.paddleRight = false;
+                break;
             default:
                 prevent = false;
             }
@@ -101,6 +143,7 @@ var BasicScene = Class.extend({
             }
             // Update the character's direction
             user.setDirection(controls);
+            paddle.setRotation(controls);
         });
         // On resize
         $(window).resize(function () {
@@ -131,9 +174,11 @@ var BasicScene = Class.extend({
         'use strict';
         // Run a new step of the user's motions
         this.user.motion();
+        this.paddle.motion();
         // Set the camera to look at our user's character
         this.setFocus(this.user.mesh);
         // And draw !
         this.renderer.render(this.scene, this.camera);
+        
     }
 });

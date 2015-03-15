@@ -3,10 +3,9 @@ var Character = Class.extend({
     init: function (args) {
         'use strict';
         // Set the different geometries composing the humanoid
-        var head = new THREE.SphereGeometry(10, 16, 16),
-           
-            // Set the material, the "skin"
-            material = new THREE.MeshLambertMaterial(args);
+        var head = new THREE.SphereGeometry(10, 16, 16), 
+        // Set the material, the "skin"
+        material = new THREE.MeshLambertMaterial(args);
         // Set the character modelisation object
         this.mesh = new THREE.Object3D();
         this.mesh.position.y = 48;
@@ -14,7 +13,6 @@ var Character = Class.extend({
         this.head = new THREE.Mesh(head, material);
         this.head.position.y = 0;
         this.mesh.add(this.head);
-        // Set and add its hands
         
         this.direction = new THREE.Vector3(0, 0, 0);
 
