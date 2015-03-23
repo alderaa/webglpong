@@ -14,7 +14,9 @@ var Character = Class.extend({
         this.head.position.y = 0;
         this.mesh.add(this.head);
         
-        this.direction = new THREE.Vector3(0, 0, 0);
+        this.direction = new THREE.Vector3(.75, -.25, -.5).normalize();
+
+        this.bounceCount = 0;
 
         // Set the current animation step
         this.step = 0;
@@ -27,19 +29,25 @@ var Character = Class.extend({
             new THREE.Vector3(0, 0, -1),
             new THREE.Vector3(-1, 0, -1),
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1)
+            new THREE.Vector3(-1, 0, 1),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0,-1, 0)
         ];
         // And the "RayCaster", able to test for intersections
         this.caster = new THREE.Raycaster();
+    },
+
+    scalarCalc: function(){
+        return 1 + this.bounceCount/50;
     },
     // Update the direction of the current motion
     setDirection: function (controls) {
         'use strict';
         // Either left or right, and either up or down (no jump or dive (on the Y axis), so far ...)
-        var x = controls.left ? -1 : controls.right ? 1 : 0,
-            y = 0,
-            z = controls.up ? -1 : controls.down ? 1 : 0;
-        this.direction.set(x, y, z);
+        // var x = controls.left ? -1 : controls.right ? 1 : 0,
+        //     y = 0,
+        //     z = controls.up ? -1 : controls.down ? 1 : 0;
+        // this.direction.set(x, y, z);
     },
     // Process the character motions
     motion: function () {
@@ -72,9 +80,11 @@ var Character = Class.extend({
             collisions = this.caster.intersectObjects(obstacles);
             // And disable that direction if we do
             if (collisions.length > 0 && collisions[0].distance <= distance) {
-                // Yep, this.rays[i] gives us : 0 => up, 1 => up-left, 2 => left, ...
-                if ((i === 0 || i === 1 || i === 7) && this.direction.z === -1) { this.direction.setZ(0); } else if ((i === 3 || i === 4 || i === 5) && this.direction.z === 1) { this.direction.setZ(0); }
-                if ((i === 1 || i === 2 || i === 3) && this.direction.x === -1) { this.direction.setX(0); } else if ((i === 5 || i === 6 || i === 7) && this.direction.x === 1) { this.direction.setX(0); }
+                var face = collisions[0].face.normal.normalize();
+                var cRay= this.rays[i].normalize();
+                var reflect = cRay.reflect(face);
+                this.direction.set(reflect.x, reflect.y, reflect.z);
+                console.log(i);
             }
         }
     },
@@ -102,6 +112,7 @@ var Character = Class.extend({
         'use strict';
         // We update our Object3D's position from our "direction"
         this.mesh.position.x += this.direction.x * ((this.direction.z === 0) ? 4 : Math.sqrt(8));
+        // this.mesh.position.y += this.direction.y * ((this.direction.y === 0) ? 4 : Math.sqrt(8));
         this.mesh.position.z += this.direction.z * ((this.direction.x === 0) ? 4 : Math.sqrt(8));
         // Now some trigonometry, using our "step" property ...
         this.step += 1 / 4;
