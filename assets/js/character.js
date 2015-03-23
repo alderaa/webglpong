@@ -18,18 +18,12 @@ var Character = Class.extend({
 
         this.bounceCount = 0;
 
-        // Set the current animation step
-        this.step = 0;
         // Set the rays : one vector for every potential direction
         this.rays = [
             new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(1, 0, 1),
             new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(1, 0, -1),
             new THREE.Vector3(0, 0, -1),
-            new THREE.Vector3(-1, 0, -1),
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1),
             new THREE.Vector3(0, 1, 0),
             new THREE.Vector3(0,-1, 0)
         ];
@@ -38,7 +32,7 @@ var Character = Class.extend({
     },
 
     scalarCalc: function(){
-        return 1 + this.bounceCount/50;
+        return 1 + this.bounceCount;
     },
     // Update the direction of the current motion
     setDirection: function (controls) {
@@ -67,24 +61,31 @@ var Character = Class.extend({
     // Test and avoid collisions
     collision: function () {
         'use strict';
-        var collisions, i,
+        var collisions, i, raysHit = 0,
             // Maximum distance from the origin before we consider collision
             distance = 32,
             // Get the obstacles array from our world
             obstacles = basicScene.world.getObstacles();
         // For each ray
         for (i = 0; i < this.rays.length; i += 1) {
+
             // We reset the raycaster to this direction
             this.caster.set(this.mesh.position, this.rays[i]);
             // Test if we intersect with any obstacle mesh
             collisions = this.caster.intersectObjects(obstacles);
             // And disable that direction if we do
             if (collisions.length > 0 && collisions[0].distance <= distance) {
+                raysHit++;
                 var face = collisions[0].face.normal.normalize();
                 var cRay= this.rays[i].normalize();
                 var reflect = cRay.reflect(face);
                 this.direction.set(reflect.x, reflect.y, reflect.z);
-                console.log(i);
+                this.bounceCount++;
+            }
+            if(raysHit > 1){
+                this.bounceCount--;
+                this.presiceCollisions(this.direction.x,this.direction.y,this.direction.z);
+                break;
             }
         }
     },
@@ -111,11 +112,53 @@ var Character = Class.extend({
     move: function () {
         'use strict';
         // We update our Object3D's position from our "direction"
-        this.mesh.position.x += this.direction.x * ((this.direction.z === 0) ? 4 : Math.sqrt(8));
-        // this.mesh.position.y += this.direction.y * ((this.direction.y === 0) ? 4 : Math.sqrt(8));
-        this.mesh.position.z += this.direction.z * ((this.direction.x === 0) ? 4 : Math.sqrt(8));
+        this.mesh.position.x += this.direction.x * this.scalarCalc();
+        this.mesh.position.y += this.direction.y * this.scalarCalc();
+        this.mesh.position.z += this.direction.z * this.scalarCalc();
         // Now some trigonometry, using our "step" property ...
-        this.step += 1 / 4;
         
+    },
+
+    presiceCollisions: function(x,y,z) {
+        var oldMeshPosition = this.mesh.clone();
+        var delta = 2;
+        oldMeshPosition.position.x -= x;
+        oldMeshPosition.position.y -= y;
+        oldMeshPosition.position.z -= z;
+        var distance = 32;
+
+        for(var i = 0; i < delta; i++){
+            oldMeshPosition.position.x += x/delta;
+            oldMeshPosition.position.y += y/delta;
+            oldMeshPosition.position.z += z/delta;
+            var count = 0;
+            for(var j = 0; j < this.rays.length; j++){
+                this.caster.set(oldMeshPosition, this.rays[j]);
+                var collisions = this.caster.intersectObjects(basicScene.world.getObstacles);
+                if(collisions.length > 0 && collisions[0].distance <= distance){
+                    count++;
+                }
+            }
+            console.log(i);
+            if(count === 1){
+                for(var j = 0; j < this.rays.length; j++){
+                    this.caster.set(oldMeshPosition, this.rays[j]);
+                    var collisions = this.caster.intersectObjects(basicScene.world.getObstacles);
+                    if(collisions.length > 1 && collisions[0].distance <= distance){
+                        var face = collisions[0].face.normal.normalize();
+                        var cRay= this.rays[i].normalize();
+                        var reflect = cRay.reflect(face);
+                        this.direction.set(reflect.x, reflect.y, reflect.z);
+                        return;
+                    }
+                }
+                
+            }else if(count > 1){
+                console.log("here")
+                presiceCollisions(x/delta, y/delta, z/delta);
+                return;
+            }
+        }
+
     }
 });
