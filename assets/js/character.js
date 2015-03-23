@@ -112,21 +112,22 @@ var Character = Class.extend({
     move: function () {
         'use strict';
         // We update our Object3D's position from our "direction"
-        this.mesh.position.x += this.direction.x * this.scalarCalc();
-        this.mesh.position.y += this.direction.y * this.scalarCalc();
-        this.mesh.position.z += this.direction.z * this.scalarCalc();
+        this.mesh.position.x += this.direction.x// * this.scalarCalc();
+        this.mesh.position.y += this.direction.y// * this.scalarCalc();
+        this.mesh.position.z += this.direction.z// * this.scalarCalc();
         // Now some trigonometry, using our "step" property ...
         
     },
 
     presiceCollisions: function(x,y,z) {
+        console.log("called");
         var oldMeshPosition = this.mesh.clone();
         var delta = 2;
         oldMeshPosition.position.x -= x;
         oldMeshPosition.position.y -= y;
         oldMeshPosition.position.z -= z;
         var distance = 32;
-
+        var obstacles = basicScene.world.getObstacles();
         for(var i = 0; i < delta; i++){
             oldMeshPosition.position.x += x/delta;
             oldMeshPosition.position.y += y/delta;
@@ -134,13 +135,13 @@ var Character = Class.extend({
             var count = 0;
             for(var j = 0; j < this.rays.length; j++){
                 this.caster.set(oldMeshPosition, this.rays[j]);
-                var collisions = this.caster.intersectObjects(basicScene.world.getObstacles);
+                var collisions = this.caster.intersectObjects(obstacles);
                 if(collisions.length > 0 && collisions[0].distance <= distance){
                     count++;
                 }
             }
-            console.log(i);
             if(count === 1){
+                console.log("here1");
                 for(var j = 0; j < this.rays.length; j++){
                     this.caster.set(oldMeshPosition, this.rays[j]);
                     var collisions = this.caster.intersectObjects(basicScene.world.getObstacles);
@@ -154,10 +155,10 @@ var Character = Class.extend({
                 }
                 
             }else if(count > 1){
-                console.log("here")
-                presiceCollisions(x/delta, y/delta, z/delta);
+                console.log("here2");
+                this.presiceCollisions(x/delta, y/delta, z/delta);
                 return;
-            }
+            }  
         }
 
     }
