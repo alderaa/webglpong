@@ -3,8 +3,11 @@ var BasicScene = Class.extend({
     // Class constructor
     init: function () {
         'use strict';
+        Physijs.scripts.worker = '/js/physijs_worker.js';
+        Physijs.scripts.ammo = '/js/ammo.js';
         // Create a scene, a camera, a light and a WebGL renderer with Three.JS
-        this.scene = new THREE.Scene();
+        this.scene = new Physijs.Scene;
+        this.scene.setGravity(new THREE.Vector3( 0, -10, 0 ));
         this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
         this.scene.add(this.camera);
         this.light = new THREE.PointLight();
@@ -21,7 +24,16 @@ var BasicScene = Class.extend({
             color: 0x00CC00
         });
         this.scene.add(this.user.mesh);
-        this.scene.add(this.paddle.mesh);
+        this.user.mesh.setLinearVelocity(new THREE.Vector3(10,0,0));
+        console.log(this.user.mesh.getLinearVelocity());
+        this.user.mesh.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal ) {
+            var incoming = new THREE.Vector3(-ball.getLinearVelocity().x,-ball.getLinearVelocity().y,-ball.getLinearVelocity().z);
+            console.log(incoming);
+            var newV = incoming.reflect(contact_normal);
+            console.log(newV);
+            ball.setLinearVelocity(newV);
+        });
+       // this.scene.add(this.paddle.mesh);
         // Create the "world" : a 3D representation of the place we'll be putting our character in
         this.world = new World({
             color: 0xF5F5F5,
@@ -96,7 +108,7 @@ var BasicScene = Class.extend({
                 return;
             }
             // Update the character's direction
-            user.setDirection(controls);
+            //user.setDirection(controls);
             paddle.setRotation(controls);
         });
         // When the user release a key up
@@ -140,9 +152,9 @@ var BasicScene = Class.extend({
                 e.preventDefault();
             } else {
                 return;
-            }
+            }d
             // Update the character's direction
-            user.setDirection(controls);
+            //user.setDirection(controls);
             paddle.setRotation(controls);
         });
         // On resize
@@ -166,14 +178,14 @@ var BasicScene = Class.extend({
     // Updating the camera to follow and look at a given Object3D / Mesh
     setFocus: function (object) {
         'use strict';
-        this.camera.position.set(0, 0, 1000);
-        this.camera.lookAt(new THREE.Vector3(500,0,0));
+        this.camera.position.set(0, 100, 0);
+        this.camera.lookAt(new THREE.Vector3(0,0,0));
     },
     // Update and draw the scene
     frame: function () {
         'use strict';
         // Run a new step of the user's motions
-        this.user.motion();
+        //this.user.motion();
         this.paddle.motion();
         // Set the camera to look at our user's character
         this.setFocus(this.user.mesh);

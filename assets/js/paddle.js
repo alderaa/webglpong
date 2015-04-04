@@ -30,7 +30,7 @@ var Paddle = Class.extend({
         this.angleY = 0;
         this.rotatingX = 0;
         this.rotatingY = 0;
-        console.log(this.paddle.position);
+        //console.log(this.paddle.position);
         // And the "RayCaster", able to test for intersections
         this.caster = new THREE.Raycaster();
     },

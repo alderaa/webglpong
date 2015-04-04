@@ -9,6 +9,9 @@ app.use(express.static(__dirname + '/assets'));
 app.get('/', function (req, res) {
   res.render("index.html");
 })
+app.get('/test', function (req, res) {
+  res.render("phystest.html");
+})
 
 var server = app.listen(3015, function () {
 

@@ -1,39 +1,69 @@
-var World = Class.extend({
-    // Class constructor
-    init: function (args,render) {
-        'use strict';
-        
-        var obstacles = [
-            new THREE.CubeGeometry(64, 64, 64)
-        ];
-      
-        // Set the material, the "skin"
-        var material = new THREE.MeshLambertMaterial(args);
-        var i;
-        // Set the "world" modelisation object
-        this.mesh = new THREE.Object3D();
-        
-        // Set and add the obstacles
-        this.obstacles = [];
-        for (i = 0; i < obstacles.length; i += 1) {
-            this.obstacles.push(new THREE.Mesh(obstacles[i], material));
-            //this.mesh.add(this.obstacles[i]);
-        }
-        var materials = [];
-        
-        var geometry = new THREE.TorusGeometry( 500, 100, 100, 100);
-        this.torroid = new THREE.Mesh(geometry,material);
-        this.torroid.material.side = THREE.BackSide;
-        this.torroid.rotation.x = -Math.PI / 2;
-       
-        this.torroid.position.set(500,50,0);
-        this.mesh.add(this.torroid);
-       
+getWorld = function(scene){	
+		var walls=[];
+		var ground_material = new THREE.MeshLambertMaterial();
+		
+        var ground1 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 1000),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground1.receiveShadow = true;
+		walls.push( ground1 );
+		var ground2 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 1000),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground2.receiveShadow = true;
+		ground2.position.x = -250;
+		ground2.position.y = 250;
+		ground2.rotation.z = Math.PI/2;
+		walls.push( ground2 );
+		var ground3 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 1000),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground3.position.x = 250;
+		ground3.position.y = 250;
+		ground3.rotation.z = -Math.PI/2;
+		ground3.receiveShadow = true;
+		walls.push( ground3 );
+		var ground4 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 1000),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground4.position.y = 500;
+		ground4.receiveShadow = true;
+		walls.push( ground4 );
+		var ground5 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 500),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground5.rotation.x = -Math.PI/2;
+		ground5.position.y = 250;
+		ground5.position.z = 500;
+		ground5.receiveShadow = true;
+		walls.push( ground5);
+		
+		var ground6 = new Physijs.BoxMesh(
+			new THREE.BoxGeometry(500, 1, 500),
+			//new THREE.PlaneGeometry(500, 500),
+			ground_material,
+			0 // mass
+		);
+		ground6.rotation.x = Math.PI/2;
+		ground6.position.y = 250;
+		ground6.position.z = -500;
+		ground6.receiveShadow = true;
+		walls.push( ground6 );
 
-        
-    },
-    getObstacles: function () {
-        'use strict';
-        return [this.torroid];
-    }
-});
+		return walls;
+}

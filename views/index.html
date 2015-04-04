@@ -6,26 +6,65 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="/css/main.css"/>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-	<script src="js/Three.js"></script>
-	<script src="js/utils.js"></script>
-	<script src="js/character.js"></script>
-	<script src="js/paddle.js"></script>
-	<script src="js/world.js"></script>
-	<script src="js/app.js"></script>
+	<script type="text/javascript" src="/js/Three.js"></script>
+    <script type="text/javascript" src="/js/physi.js"></script>
+    <script type="text/javascript" src="/js/world.js"></script>
+    <script type="text/javascript" src="/js/ball.js"></script>
+    <script type="text/javascript">
+
+    'use strict';
+
+    Physijs.scripts.worker = '/js/physijs_worker.js';
+    Physijs.scripts.ammo = '/js/ammo.js';
+
+    var initScene, render, renderer, scene, camera, box, balls;
+
+    function initScene() {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.getElementById( 'viewport' ).appendChild( renderer.domElement );
+
+        scene = new Physijs.Scene;
+        scene.setGravity(new THREE.Vector3( 0, 0, 0 ));
+        camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            1,
+            1000
+        );
+        camera.position.set(0, 250, 500);
+        camera.lookAt(new THREE.Vector3(0,250,0));
+        var light = new THREE.PointLight();
+        light.position.set(0, 100, 100);
+        scene.add(light);
+        
+        var walls = getWorld();
+
+        for(var wall in walls){
+        	scene.add(walls[wall]);
+        }
+        balls = getBalls(1);
+		for(var ball in balls){
+			scene.add(balls[ball]);
+		}
+        requestAnimationFrame( render );
+    };
+
+    render = function() {
+        scene.simulate(); // run physics
+        renderer.render( scene, camera); // render the scene
+        requestAnimationFrame( render );
+
+    };
+
+    $(function(){
+    	initScene();
+    });
+
+    </script>
 </head>
+
 <body>
-
-
-<figure id="basic-scene">
-	<figcaption class="container"><span class="alert alert-warning">Use the arrows on your keyboard to move the ball around and the w,a,s,and d keys to move the paddle.</span></figcaption>
-</figure>
-<script>
-basicScene = new BasicScene();
-function animate () {
-	requestAnimationFrame(animate);
-	basicScene.frame();
-}
-animate();
-</script>
+    <div id="viewport"></div>
 </body>
 </html>
