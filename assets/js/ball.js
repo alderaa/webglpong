@@ -8,13 +8,14 @@ getBalls = function(num){
 		ball.position.y =250;
 		scene.add( ball );
 		ball.castShadow = true;
+		ball.receiveShadow = false;
         ball.setLinearVelocity(new THREE.Vector3(Math.random()*100+100,Math.random()*100+100,Math.random()*100+100));
         ball.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal) {
+		   	var audio = new Audio('pong.wav');
+			audio.play();
 		   	var incoming = new THREE.Vector3(-ball.getLinearVelocity().x,-ball.getLinearVelocity().y,-ball.getLinearVelocity().z);
-		   	console.log(incoming);
-		   	var newV = incoming.reflect(contact_normal);
-		   	console.log(newV);
-		   	ball.setLinearVelocity(newV);
+		   	var newVel = incoming.reflect(contact_normal);
+		   	ball.setLinearVelocity(newVel);
 		});
     }
 };
