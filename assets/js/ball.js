@@ -6,8 +6,9 @@ getBalls = function(num){
 	        1
 	    );
 		ball.position.y =250;
-        scene.add( ball );
-        ball.setLinearVelocity(new THREE.Vector3(Math.random()*300,Math.random()*200,Math.random()*100));
+		scene.add( ball );
+		ball.castShadow = true;
+        ball.setLinearVelocity(new THREE.Vector3(Math.random()*100+100,Math.random()*100+100,Math.random()*100+100));
         ball.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal) {
 		   	var incoming = new THREE.Vector3(-ball.getLinearVelocity().x,-ball.getLinearVelocity().y,-ball.getLinearVelocity().z);
 		   	console.log(incoming);
