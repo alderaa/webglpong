@@ -14,7 +14,7 @@ getBalls = function(num){
         ball.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal) {
 		   	var audio = new Audio('pong.wav');
 			audio.play();
-		   	var incoming = new THREE.Vector3(-ball.getLinearVelocity().x,-ball.getLinearVelocity().y,-ball.getLinearVelocity().z);
+		   	var incoming = new THREE.Vector3(1.02 * (-ball.getLinearVelocity().x), 1.02 * (-ball.getLinearVelocity().y), 1.02*(-ball.getLinearVelocity().z));
 		   	var newVel = incoming.reflect(contact_normal);
 		   	ball.setLinearVelocity(newVel);
 		});
