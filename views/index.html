@@ -11,32 +11,44 @@
     <script type="text/javascript" src="/js/world.js"></script>
     <script type="text/javascript" src="/js/ball.js"></script>
     <script type="text/javascript">
-
+   
     'use strict';
 
     Physijs.scripts.worker = '/js/physijs_worker.js';
     Physijs.scripts.ammo = '/js/ammo.js';
 
-    var initScene, render, renderer, scene, camera, box, balls;
+    var initScene, render, renderer, scene, camera, box, balls, walls,camera2;
 
     function initScene() {
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize( window.innerWidth, window.innerHeight );
         renderer.shadowMapEnabled = true;
     	renderer.shadowMapSoft = true;
+		renderer.autoClear = false;
+    	
 
         document.getElementById( 'viewport' ).appendChild( renderer.domElement );
 
         scene = new Physijs.Scene;
         scene.setGravity(new THREE.Vector3( 0, 0, 0 ));
         camera = new THREE.PerspectiveCamera(
-            90,
+            45,
             window.innerWidth / window.innerHeight,
             1,
-            1000
+            10000
         );
-        camera.position.set(0, 250, 800);
+        camera.position.set(0, 250, 1200);
         camera.lookAt(new THREE.Vector3(0,250,0));
+        camera2 = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            1,
+            10000
+        );
+        camera2.position.set(0, 250, -1200);
+        camera2.lookAt(new THREE.Vector3(0,250,0));
+        scene.add(camera);
+        scene.add(camera2);
         var light = new THREE.DirectionalLight(0xdfebff, .1);
 	    light.position.set(0, 1000, 0);
 
@@ -66,7 +78,7 @@
 		var p2 = new THREE.PointLight(0x005500,2.0);
 		p.position = new THREE.Vector3(0,250,700);
 		scene.add(p);
-        var walls = getWorld();
+        walls = getWorld();
 
         for(var wall in walls){
         	scene.add(walls[wall]);
@@ -77,12 +89,32 @@
 		}
         requestAnimationFrame( render );
     };
-
+    var count = 100;
+    var degree = 1;
     render = function() {
+    	
         scene.simulate(); // run physics
-        renderer.render( scene, camera); // render the scene
-        requestAnimationFrame( render );
+        var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+		camera.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
+		camera2.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
+		camera.updateProjectionMatrix();
+		camera2.updateProjectionMatrix();
+		
+		// setViewport parameters:
+		//  lower_left_x, lower_left_y, viewport_width, viewport_height
 
+		renderer.setViewport( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
+		renderer.clear();
+		
+		// left side
+		renderer.setViewport( 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
+		renderer.render( scene, camera );
+		
+		// right side
+		renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
+		renderer.render( scene, camera2 );	
+		requestAnimationFrame( render );
+       
     };
 
     $(function(){
