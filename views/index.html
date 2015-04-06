@@ -10,6 +10,8 @@
     <script type="text/javascript" src="/js/physi.js"></script>
     <script type="text/javascript" src="/js/world.js"></script>
     <script type="text/javascript" src="/js/ball.js"></script>
+    <script type="text/javascript" src="/js/paddle.js"></script>
+    <script type="text/javascript" src="/js/THREEx.KeyboardState.js"></script>
     <script type="text/javascript">
    
     'use strict';
@@ -18,6 +20,7 @@
     Physijs.scripts.ammo = '/js/ammo.js';
 
     var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1, ps2;
+    var paddle1, paddle2, paddleType, paddleDist, keyboardControls;
 
     function initScene() {
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -25,7 +28,9 @@
         renderer.shadowMapEnabled = true;
     	renderer.shadowMapSoft = true;
 		renderer.autoClear = false;
-    	
+        paddleType = 0;
+    	paddleDist = 490;
+        keyboardControls = new THREEx.KeyboardState();
 
         document.getElementById( 'viewport' ).appendChild( renderer.domElement );
 
@@ -84,11 +89,38 @@
         	scene.add(walls[wall]);
         }
         balls = getBalls(1);
+        paddle1 = getPaddle(paddleDist, paddleType);
+        paddle2 = getPaddle(-paddleDist, paddleType);
         requestAnimationFrame( render );
     };
     var count = 100;
     var degree = 1;
     render = function() {
+        //Update paddle position
+        var x = 0;
+        var y = 0;
+        var z = 0;
+        if(keyboardControls.pressed("left"))
+            x = -300;
+        else if(keyboardControls.pressed("right"))
+            x = 300;
+
+        if(keyboardControls.pressed("down"))
+            y = -300;
+        else if(keyboardControls.pressed("up"))
+            y = 300;
+        
+        paddle1.setLinearVelocity(new THREE.Vector3(x,y,z));
+        paddle1.rotation.x = 0;
+        paddle1.rotation.y = 0;
+        paddle1.rotation.z = 0;
+        paddle2.setLinearVelocity(new THREE.Vector3(0,0,0));
+        paddle2.rotation = new THREE.Vector3(0,0,0);
+        paddle2.rotation.x = 0;
+        paddle2.rotation.y = 0;
+        paddle2.rotation.z = 0;
+        
+        //Check end zone
     	checkEndZone();
         scene.simulate(); // run physics
         var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
