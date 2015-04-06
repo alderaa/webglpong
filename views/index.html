@@ -17,7 +17,7 @@
     Physijs.scripts.worker = '/js/physijs_worker.js';
     Physijs.scripts.ammo = '/js/ammo.js';
 
-    var initScene, render, renderer, scene, camera, box, balls, walls,camera2;
+    var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1, ps2;
 
     function initScene() {
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -84,15 +84,12 @@
         	scene.add(walls[wall]);
         }
         balls = getBalls(1);
-		for(var ball in balls){
-			scene.add(balls[ball]);
-		}
         requestAnimationFrame( render );
     };
     var count = 100;
     var degree = 1;
     render = function() {
-    	
+    	checkEndZone();
         scene.simulate(); // run physics
         var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 		camera.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
@@ -104,6 +101,7 @@
 		//  lower_left_x, lower_left_y, viewport_width, viewport_height
 
 		renderer.setViewport( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
+        
 		renderer.clear();
 		
 		// left side
@@ -114,8 +112,19 @@
 		renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
 		renderer.render( scene, camera2 );	
 		requestAnimationFrame( render );
-       
+        
     };
+
+    var checkEndZone = function(){
+        for(var i = 0; i < balls.length; i++){
+            var ball = balls[i];
+            if(ball.position.z > 505){
+                resetBall(ball, -1);
+            }else if(ball.position.z < -505){
+                resetBall(ball, 1);
+            }
+        }
+    }
 
     $(function(){
     	initScene();
