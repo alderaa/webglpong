@@ -110,15 +110,20 @@
         else if(keyboardControls.pressed("up"))
             y = 300;
         
+        paddle1.__dirtyPosition = true;
+        paddle1.__dirtyRotation = true;
         paddle1.setLinearVelocity(new THREE.Vector3(x,y,z));
+        paddle1.position.z = paddleDist;
         paddle1.rotation.x = 0;
         paddle1.rotation.y = 0;
         paddle1.rotation.z = 0;
-        paddle2.setLinearVelocity(new THREE.Vector3(0,0,0));
-        paddle2.rotation = new THREE.Vector3(0,0,0);
+        paddle2.__dirtyPosition = true;
+        paddle2.__dirtyRotation = true;
         paddle2.rotation.x = 0;
         paddle2.rotation.y = 0;
         paddle2.rotation.z = 0;
+        paddle2.position.z = -paddleDist
+        paddle2.setLinearVelocity(new THREE.Vector3(-x, y, z));
         
         //Check end zone
     	checkEndZone();
