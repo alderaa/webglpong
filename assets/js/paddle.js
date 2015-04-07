@@ -24,6 +24,73 @@ getPaddle = function(pos, type){
     }
 };
 
+updatePaddlePos = function(paddle, x, y, z) {
+    paddle.__dirtyPosition = true;
+    paddle.__dirtyRotation = true;
+    paddle.position.z = z;
+    paddle.rotation.x = 0;
+    paddle.rotation.y = 0;
+    paddle.rotation.z = 0;
+    paddle.setLinearVelocity(new THREE.Vector3(x,y,0));
+}
+
+rotatePaddle = function(paddle, rotX, rotY) {
+    var MOVEMENT_FACTOR = .05;
+    // // Either left or right, and either up or down (no jump or dive (on the Y axis), so far ...)
+    // if(rotX !== 0)
+    // {
+    //     if(rotX === -1 && angleX < Math.PI/2)
+    //         angleX += MOVEMENT_FACTOR;
+    //     else if(rotX === 1 && angleX > -Math.PI/2)
+    //         angleX -= MOVEMENT_FACTOR;
+    // }
+    // else
+    // {
+    //     if(angleX < 0)
+    //     {
+    //          if(angleX > -MOVEMENT_FACTOR)
+    //             angleX = 0;
+    //         else
+    //             angleX += MOVEMENT_FACTOR;
+    //     }
+    //     else if(angleX > 0)
+    //     {
+    //         if(angleX < MOVEMENT_FACTOR)
+    //             angleX = 0;
+    //         else
+    //             angleX -= MOVEMENT_FACTOR;
+    //     }
+    // }
+
+    // if(rotY !== 0)
+    // {
+    //     if(rotY === -1 && angleY < Math.PI/2)
+    //         angleY += MOVEMENT_FACTOR;
+    //     else if(rotY === 1 && angleY > -Math.PI/2)
+    //         angleY -= MOVEMENT_dwFACTOR;
+    // }
+    // else
+    // {
+    //     if(angleY < 0)
+    //     {
+    //         if(angleY > -MOVEMENT_FACTOR)
+    //             angleY = 0;
+    //         else
+    //             angleY += MOVEMENT_FACTOR;
+    //     }
+    //     else if(angleY > 0)
+    //     {
+    //         if(angleY < MOVEMENT_FACTOR)
+    //             angleY = 0;
+    //         else
+    //             angleY -= MOVEMENT_FACTOR;
+    //     }
+    // }
+    paddle.rotation.y = rotX;
+    paddle.rotation.x = rotY;
+    
+}
+
 
 // // Process the character motions
 // motion: function () {

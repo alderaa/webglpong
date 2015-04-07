@@ -20,7 +20,7 @@
     Physijs.scripts.ammo = '/js/ammo.js';
 
     var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1, ps2;
-    var paddle1, paddle2, paddleType, paddleDist, keyboardControls;
+    var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY;
 
     function initScene() {
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -29,6 +29,8 @@
     	renderer.shadowMapSoft = true;
 		renderer.autoClear = false;
         paddleType = 0;
+        rotX = 0;
+        rotY = 0;
     	paddleDist = 490;
         keyboardControls = new THREEx.KeyboardState();
 
@@ -99,31 +101,33 @@
         //Update paddle position
         var x = 0;
         var y = 0;
-        var z = 0;
-        if(keyboardControls.pressed("left"))
-            x = -300;
-        else if(keyboardControls.pressed("right"))
-            x = 300;
+        var rotX = 0;
+        var rotY = 0;
+        if(keyboardControls.pressed("a"))
+            x = -350;
+        else if(keyboardControls.pressed("d"))
+            x = 350;
 
-        if(keyboardControls.pressed("down"))
-            y = -300;
-        else if(keyboardControls.pressed("up"))
-            y = 300;
-        
-        paddle1.__dirtyPosition = true;
-        paddle1.__dirtyRotation = true;
-        paddle1.setLinearVelocity(new THREE.Vector3(x,y,z));
-        paddle1.position.z = paddleDist;
-        paddle1.rotation.x = 0;
-        paddle1.rotation.y = 0;
-        paddle1.rotation.z = 0;
-        paddle2.__dirtyPosition = true;
-        paddle2.__dirtyRotation = true;
-        paddle2.rotation.x = 0;
-        paddle2.rotation.y = 0;
-        paddle2.rotation.z = 0;
-        paddle2.position.z = -paddleDist
-        paddle2.setLinearVelocity(new THREE.Vector3(-x, y, z));
+        if(keyboardControls.pressed("s"))
+            y = -350;
+        else if(keyboardControls.pressed("w"))
+            y = 350;
+
+        if(keyboardControls.pressed("left"))
+            rotX += .75;
+        else if(keyboardControls.pressed("right"))
+            rotX += -.75;
+
+        if(keyboardControls.pressed("up"))
+            rotY += -.75;
+        else if(keyboardControls.pressed("down"))
+            rotY += .75;
+
+        updatePaddlePos(paddle1, x, y, paddleDist)
+        updatePaddlePos(paddle2, -x, y, -paddleDist);
+        rotatePaddle(paddle1, rotX, rotY);
+        rotatePaddle(paddle2, rotX, -rotY);
+        paddle2.setLinearVelocity(new THREE.Vector3(-x, y, 0));
         
         //Check end zone
     	checkEndZone();
