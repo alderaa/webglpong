@@ -20,7 +20,7 @@
     Physijs.scripts.worker = '/js/physijs_worker.js';
     Physijs.scripts.ammo = '/js/ammo.js';
 
-    var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1, ps2;
+    var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1 = 0, ps2 = 0;
     var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY;
     var paddleSpeed, rotateLimit, controllerThreshold;
 
@@ -183,8 +183,12 @@
             var ball = balls[i];
             if(ball.position.z > 505){
                 resetBall(ball, -1);
+                ps1++;
+                $("#ps1").html(ps1);
             }else if(ball.position.z < -505){
                 resetBall(ball, 1);
+                ps2++;
+                $("#ps2").html(ps2);
             }
         }
     }
@@ -197,6 +201,14 @@
 </head>
 
 <body>
+    <div style="text-align:center;">
+        <span>Player 1 Score: </span>
+        <span id="ps1">0</span>
+        <br/>
+        <span>Player 2 Score: </span>
+        <span id="ps2">0</span>
+
+    </div>
     <div id="viewport"></div>
 </body>
 </html>
