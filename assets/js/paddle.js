@@ -1,27 +1,42 @@
 getPaddle = function(pos, type){
+    var paddle;
     if(type === 0)
     {
         // Set the different geometries composing the humanoid
-        var paddle = new Physijs.BoxMesh(
+        paddle = new Physijs.BoxMesh(
             new THREE.CubeGeometry(100, 50, 5),
             new THREE.MeshLambertMaterial({color:new THREE.Color( 0x00cc00 )}),
             1
         );
-        paddle.position.y = 250;
-        paddle.position.z = pos;
-        scene.add( paddle );
-        paddle.castShadow = true;
-        paddle.receiveShadow = false;
-        return paddle;
+        
     }
     else if(type === 1)
     {
+        paddle = new Physijs.SphereMesh(
+            new THREE.SphereGeometry(50, 16, 16),
+            new THREE.MeshLambertMaterial({color:new THREE.Color( 0x00cc00 )}),
+            1
+        );
 
     }
     else
     {
+        var geometry = new THREE.SphereGeometry( 50, 75, 12 );
+        geometry.applyMatrix( new THREE.Matrix4().makeScale( 1.5, 1, 1.0 ) );
+        paddle = new Physijs.SphereMesh(
+            geometry,
+            new THREE.MeshLambertMaterial({color:new THREE.Color( 0x00cc00 )}),
+            1
+        );
+
 
     }
+    paddle.position.y = 250;
+    paddle.position.z = pos;
+    scene.add( paddle );
+    paddle.castShadow = true;
+    paddle.receiveShadow = false;
+    return paddle;
 };
 
 updatePaddlePos = function(paddle, x, y, z) {

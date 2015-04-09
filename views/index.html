@@ -23,14 +23,14 @@
     var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1 = 0, ps2 = 0;
     var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY;
     var paddleSpeed, rotateLimit, controllerThreshold;
-
+    var MAX_SCORE = 7;
+    paddleType = 1;
     function initScene() {
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize( window.innerWidth, window.innerHeight );
         renderer.shadowMapEnabled = true;
     	renderer.shadowMapSoft = true;
 		renderer.autoClear = false;
-        paddleType = 0;
         rotX = 0;
         rotY = 0;
     	paddleDist = 480;
@@ -173,8 +173,21 @@
 		
 		// right side
 		renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
-		renderer.render( scene, camera2 );	
-		requestAnimationFrame( render );
+		renderer.render( scene, camera2 );
+        if(ps1<MAX_SCORE&&ps2<MAX_SCORE){	
+		  requestAnimationFrame( render );
+        }
+        else{
+            if(ps1===MAX_SCORE){
+                $("#win").html("One");
+                $("#lose").html("Two");
+            }
+            else if(ps2===MAX_SCORE){
+                $("#win").html("Two");
+                $("#lose").html("One");
+            }
+            $("#gameover").show();
+        }
         
     };
 
@@ -183,31 +196,62 @@
             var ball = balls[i];
             if(ball.position.z > 505){
                 resetBall(ball, -1);
-                ps1++;
-                $("#ps1").html(ps1);
-            }else if(ball.position.z < -505){
-                resetBall(ball, 1);
                 ps2++;
                 $("#ps2").html(ps2);
+            }else if(ball.position.z < -505){
+                resetBall(ball, 1);
+                ps1++;
+                $("#ps1").html(ps1);
             }
         }
     }
-
     $(function(){
-    	initScene();
+        $("#play").click(function(){
+            $("#begin").hide();
+            paddleType = parseInt($("input[type='radio'][name='paddle']:checked").val());
+            MAX_SCORE  = parseInt($("#maxscore").val());
+            $("#bestOf").html(MAX_SCORE);
+            initScene();
+        });
     });
 
     </script>
 </head>
 
 <body>
+<style>
+h1{
+    padding-top:0px;
+    margin-top:20px;
+    font-size:40px;
+}
+input{
+    font-size:18px;
+}
+</style>
+    <div id="begin" style="z-index:1000;width:100%;height:100%;background-color: rgba(0,0,0,0.8);position:absolute">
+        <div style="margin:50px auto;height:300px;background:#ddd;width:700px;border-radius:10px;text-align:center">
+            <h1>Game Options</h1>
+            <p><strong>Paddle Type</strong></p>
+            <p>Rectangle <input type="radio" name="paddle" value=0 checked/> Sphere <input type="radio" name="paddle" value=1/> Ellipsoid<input type="radio" name="paddle" value=2/></p>
+            <p><strong>Max Score</strong> <input id="maxscore" type="number" style="width:50px" value="7"/></p>
+            <input type="button" id="play" value="Start!" /></div>
+        </div>
+    </div>
+    <div id="gameover" style="display:none;z-index:1000;width:100%;height:100%;background-color: rgba(0,0,0,0.8);position:absolute">
+        <div style="margin:50px auto;height:300px;background:#ddd;width:700px;border-radius:10px;text-align:center">
+            <div style="width:100%;height:150px;background:#dff0d8;border-radius:10px;padding-top:20px"><h1>Player <span id="win"></span> Wins!</h2></div>
+            <div style="width:100%;height:150px;background:#f2dede;border-radius:10px;padding-top:20px"><h1>Player <span id="lose"></span> Loses.. :(</h2>
+            <input type="button" value="Play Again?" onclick="location.reload()"/></div>
+        </div>
+    </div>
     <div style="text-align:center;">
-        <span>Player 1 Score: </span>
-        <span id="ps1">0</span>
-        <br/>
-        <span>Player 2 Score: </span>
+        <span>Player One Score: </span>
+        <span id="ps1" style="margin-right:60px;">0</span>
+        <span>Player Two Score: </span>
         <span id="ps2">0</span>
-
+        <br/>
+        <span>Playing to <span id="bestOf">7</span></span>
     </div>
     <div id="viewport"></div>
 </body>
