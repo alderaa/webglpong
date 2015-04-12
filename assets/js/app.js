@@ -5,16 +5,12 @@ var paddleSpeed, rotateLimit, controllerThreshold;
 var MAX_SCORE = 7;
 paddleType = 1;
 var socket = io();
-socket.on('bounce', function(newVel){
-    ball.setLinearVelocity(newVel);
-});
+
 socket.on('playerid',function(playerId){
     playerid = playerId;
+    console.log(playerid);
 });
-socket.on('otherplayermove',function(data){
-    paddle2.updatePaddlePos(paddle2, data.x, data.y, -paddleDist);
-    paddle2.rotatePaddle(paddle2, data.rotX, data.rotY);
-});
+
       
 Physijs.scripts.worker = '/js/physijs_worker.js';
 Physijs.scripts.ammo = '/js/ammo.js';
@@ -91,9 +87,31 @@ function initScene() {
         scene.add(walls[wall]);
     }
     ball = getBall();
-    paddle1 = getPaddle(paddleDist, paddleType);
-    paddle2 = getPaddle(-paddleDist, paddleType);
+    if(playerid==='one'){
+        paddle1 = getPaddle(paddleDist, paddleType);
+        paddle2 = getPaddle(-paddleDist, paddleType);
+    }
+    else{
+        paddle2 = getPaddle(paddleDist, paddleType);
+        paddle1 = getPaddle(-paddleDist, paddleType);
+    }
+    
+    socket.on('bounce', function(newVel){
+        ball.setLinearVelocity(newVel);
+    });
+    socket.on('otherplayermove',function(data){
+        var dist;
+        if(playerid==='one'){
+            dist = paddleDist;
+        }
+        else{
+            dist = -paddleDist;
+        }
+        updatePaddlePos(paddle2, data.x, data.y, dist);
+        rotatePaddle(paddle2, data.rotX, data.rotY);
+    });
     requestAnimationFrame( render );
+
 };
 var count = 100;
 var degree = 1;
@@ -139,8 +157,14 @@ render = function() {
         if(Math.abs(controller.rightStickY) >= controllerThreshold)
         rotY = controller.rightStickY*rotateLimit;
     }
-
-    updatePaddlePos(paddle1, x, y, paddleDist)
+    var dist;
+    if(playerid==='one'){
+        dist = -paddleDist;
+    }
+    else{
+        dist = paddleDist;
+    }
+    updatePaddlePos(paddle1, x, y, dist)
 
     //updatePaddlePos(paddle2, -x, y, -paddleDist);
     rotatePaddle(paddle1, rotX, rotY);
