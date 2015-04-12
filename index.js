@@ -1,6 +1,10 @@
 var express = require('express')
 var app = express()
-
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var player1;
+var player2;
 app.set('views', __dirname+"/views");
 app.engine('html', require('ejs').renderFile);
 
@@ -13,7 +17,20 @@ app.get('/test', function (req, res) {
   res.render("phystest.html");
 })
 
-var server = app.listen(3015, function () {
+io.on('connection', function(socket){
+ 
+   socket.emit('playerid',socket.id);
+   socket.on('bounce', function(msg){
+    io.emit('bounce', msg);
+   });
+   socket.on('moved',function(data){
+   	socket.broadcast.emit('otherplayermove',data);
+   });
+   
+});
+
+
+var server = http.listen(3015, function () {
 
   var host = server.address().address
   var port = server.address().port
