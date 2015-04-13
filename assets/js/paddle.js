@@ -1,5 +1,6 @@
 getPaddle = function(pos, type){
     var paddle;
+    console.log(type);
     if(type === 0)
     {
         // Set the different geometries composing the humanoid

@@ -3,7 +3,7 @@ var initScene, render, renderer, scene, camera, box, ball, walls,camera2 ,ps1 = 
 var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY,playerid,reset =false;
 var paddleSpeed, rotateLimit, controllerThreshold,ready=false;
 var MAX_SCORE = 7;
-paddleType = 1;
+paddleType = 0;
 var socket = io();
 
 socket.on('playerid',function(playerId){
@@ -131,6 +131,7 @@ function initScene() {
     });
     socket.on('otherplayermove',function(data){
         var dist;
+        
         if(playerid==='one'){
             dist = -paddleDist;
         }
@@ -263,12 +264,12 @@ render = function() {
 
 var checkEndZone = function(){
     if(playerid==="one"&&!reset){
-        if(ball.position.z > 520){
+        if(ball.position.z > 600){
             resetBall(ball, -1);
             socket.emit("point2","");
             reset=true;
             
-        }else if(ball.position.z < -520){
+        }else if(ball.position.z < -600){
             resetBall(ball, 1);
             socket.emit("point1","");
             reset=true;
