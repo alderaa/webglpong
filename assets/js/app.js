@@ -1,211 +1,196 @@
- 'use strict';
-var initScene, render, renderer, scene, camera, box, ball, walls,camera2 ,ps1 = 0, ps2 = 0;
-var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY,playerid;
-var paddleSpeed, rotateLimit, controllerThreshold;
-var MAX_SCORE = 7;
-paddleType = 1;
-var socket = io();
-socket.on('bounce', function(newVel){
-    ball.setLinearVelocity(newVel);
-});
-socket.on('playerid',function(playerId){
-    playerid = playerId;
-});
-socket.on('otherplayermove',function(data){
-    paddle2.updatePaddlePos(paddle2, data.x, data.y, -paddleDist);
-    paddle2.rotatePaddle(paddle2, data.rotX, data.rotY);
-});
-      
-Physijs.scripts.worker = '/js/physijs_worker.js';
-Physijs.scripts.ammo = '/js/ammo.js';
-
-
-function initScene() {
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.shadowMapEnabled = true;
-    renderer.shadowMapSoft = true;
-    renderer.autoClear = false;
-    rotX = 0;
-    rotY = 0;
-    paddleDist = 480;
-    keyboardControls = new THREEx.KeyboardState();
-    paddleSpeed = 375;
-    rotateLimit = .5;
-    controllerThreshold = .2;
-
-    document.getElementById( 'viewport' ).appendChild( renderer.domElement );
-
-    scene = new Physijs.Scene;
-    scene.setGravity(new THREE.Vector3( 0, 0, 0 ));
-    camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        1,
-        10000
-    );
-    camera.position.set(0, 250, 1200);
-    camera.lookAt(new THREE.Vector3(0,250,0));
-    camera2 = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        1,
-        10000
-    );
-    camera2.position.set(0, 250, -1200);
-    camera2.lookAt(new THREE.Vector3(0,250,0));
-    scene.add(camera);
-    scene.add(camera2);
-    var light = new THREE.DirectionalLight(0xdfebff, .1);
-    light.position.set(0, 1000, 0);
-
-    light.castShadow = true;
-    //light.shadowCameraVisible = true;
-
-    light.shadowMapWidth = 500;
-    light.shadowMapHeight = 500;
-
-    var d = 500;
-
-    light.shadowCameraLeft = -d;
-    light.shadowCameraRight = d;
-    light.shadowCameraTop = d;
-    light.shadowCameraBottom = -d;
-
-    light.shadowCameraFar = 1000;
-    light.shadowDarkness = 0.5;
-
-    scene.add(light);
-    var light2 = new THREE.DirectionalLight(0xdfebff, .1);
-    light2.position.set(0, -1000, 0);
-    scene.add(light2);
-    var p = new THREE.PointLight(0x005500,2.0);
-    p.position = new THREE.Vector3(0,250,-700);
-    scene.add(p);
-    var p2 = new THREE.PointLight(0x005500,2.0);
-    p.position = new THREE.Vector3(0,250,700);
-    scene.add(p);
-    walls = getWorld();
-
-    for(var wall in walls){
-        scene.add(walls[wall]);
+var basicScene;
+var BasicScene = Class.extend({
+    // Class constructor
+    init: function () {
+        'use strict';
+        Physijs.scripts.worker = '/js/physijs_worker.js';
+        Physijs.scripts.ammo = '/js/ammo.js';
+        // Create a scene, a camera, a light and a WebGL renderer with Three.JS
+        this.scene = new Physijs.Scene;
+        this.scene.setGravity(new THREE.Vector3( 0, -10, 0 ));
+        this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
+        this.scene.add(this.camera);
+        this.light = new THREE.PointLight();
+        this.light.position.set(-300, 0, 500);
+        this.scene.add(this.light);
+        this.renderer = new THREE.WebGLRenderer({ antialiasing: true });
+        // Define the container for the renderer
+        this.container = $('#basic-scene');
+        // Create the user's character
+        this.user = new Character({
+            color: 0x7A43B6
+        });
+        this.paddle = new Paddle({
+            color: 0x00CC00
+        });
+        this.scene.add(this.user.mesh);
+        this.user.mesh.setLinearVelocity(new THREE.Vector3(10,0,0));
+        console.log(this.user.mesh.getLinearVelocity());
+        this.user.mesh.addEventListener( 'collision', function( other_object, relative_velocity, relative_rotation, contact_normal ) {
+            var incoming = new THREE.Vector3(-ball.getLinearVelocity().x,-ball.getLinearVelocity().y,-ball.getLinearVelocity().z);
+            console.log(incoming);
+            var newV = incoming.reflect(contact_normal);
+            console.log(newV);
+            ball.setLinearVelocity(newV);
+        });
+       // this.scene.add(this.paddle.mesh);
+        // Create the "world" : a 3D representation of the place we'll be putting our character in
+        this.world = new World({
+            color: 0xF5F5F5,
+        },this.renderer);
+        this.scene.add(this.world.mesh);
+        // Define the size of the renderer
+        this.setAspect();
+        // Insert the renderer in the container
+        this.container.prepend(this.renderer.domElement);
+        // Set the camera to look at our user's character
+        this.setFocus(this.user.mesh);
+        // Start the events handlers
+        this.setControls();
+    },
+    // Event handlers
+    setControls: function () {
+        'use strict';
+        // Within $'s methods, we won't be able to access "this"
+        var user = this.user,
+            paddle = this.paddle,
+            // State of the different controls
+            controls = {
+                left: false,
+                up: false,
+                right: false,
+                down: false,
+                paddleUp: false,
+                paddleDown: false,
+                paddleLeft: false,
+                paddleRight: false
+            };
+        // When the user push a key down
+        $(document).keydown(function (e) {
+            var prevent = true;
+            // Update the state of the attached control to "true"
+            switch (e.keyCode) {
+            case 37:
+                controls.left = true;
+                break;
+            case 38:
+                controls.up = true;
+                break;
+            case 39:
+                controls.right = true;
+                break;
+            case 40:
+                controls.down = true;
+                break;
+            case 87:
+                //w
+                controls.paddleUp = true;
+                break;
+            case 65:
+                //a
+                controls.paddleLeft = true;
+                break;
+            case 83:
+                //s
+                controls.paddleDown = true;
+                break;
+            case 68:
+                //d
+                controls.paddleRight = true;
+                break;
+            default:
+                prevent = false;
+            }
+            // Avoid the browser to react unexpectedly
+            if (prevent) {
+                e.preventDefault();
+            } else {
+                return;
+            }
+            // Update the character's direction
+            //user.setDirection(controls);
+            paddle.setRotation(controls);
+        });
+        // When the user release a key up
+        $(document).keyup(function (e) {
+            var prevent = true;
+            // Update the state of the attached control to "false"
+            switch (e.keyCode) {
+            case 37:
+                controls.left = false;
+                break;
+            case 38:
+                controls.up = false;
+                break;
+            case 39:
+                controls.right = false;
+                break;
+            case 40:
+                controls.down = false;
+                break;
+            case 87:
+                //w
+                controls.paddleUp = false;
+                break;
+            case 65:
+                //a
+                controls.paddleLeft = false;
+                break;
+            case 83:
+                //s
+                controls.paddleDown = false;
+                break;
+            case 68:
+                //d
+                controls.paddleRight = false;
+                break;
+            default:
+                prevent = false;
+            }
+            // Avoid the browser to react unexpectedly
+            if (prevent) {
+                e.preventDefault();
+            } else {
+                return;
+            }d
+            // Update the character's direction
+            //user.setDirection(controls);
+            paddle.setRotation(controls);
+        });
+        // On resize
+        $(window).resize(function () {
+            // Redefine the size of the renderer
+            basicScene.setAspect();
+        });
+    },
+    // Defining the renderer's size
+    setAspect: function () {
+        'use strict';
+        // Fit the container's full width
+        var w = this.container.width(),
+            // Fit the initial visible area's height
+            h = $(window).height();
+        // Update the renderer and the camera
+        this.renderer.setSize(w, h);
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+    },
+    // Updating the camera to follow and look at a given Object3D / Mesh
+    setFocus: function (object) {
+        'use strict';
+        this.camera.position.set(0, 100, 0);
+        this.camera.lookAt(new THREE.Vector3(0,0,0));
+    },
+    // Update and draw the scene
+    frame: function () {
+        'use strict';
+        // Run a new step of the user's motions
+        //this.user.motion();
+        this.paddle.motion();
+        // Set the camera to look at our user's character
+        this.setFocus(this.user.mesh);
+        // And draw !
+        this.renderer.render(this.scene, this.camera);
+        
     }
-    ball = getBall();
-    paddle1 = getPaddle(paddleDist, paddleType);
-    paddle2 = getPaddle(-paddleDist, paddleType);
-    requestAnimationFrame( render );
-};
-var count = 100;
-var degree = 1;
-render = function() {
-    var x = 0;
-    var y = 0;
-    var rotX = 0;
-    var rotY = 0;
-    if(!Gamepad.getState(0))
-    {
-        //Update paddle position
-        if(keyboardControls.pressed("a"))
-            x = -paddleSpeed;
-        else if(keyboardControls.pressed("d"))
-            x = paddleSpeed;
-
-        if(keyboardControls.pressed("s"))
-            y = -paddleSpeed;
-        else if(keyboardControls.pressed("w"))
-            y = paddleSpeed;
-
-        if(keyboardControls.pressed("left"))
-            rotX += rotateLimit;
-        else if(keyboardControls.pressed("right"))
-            rotX += -rotateLimit;
-
-        if(keyboardControls.pressed("up"))
-            rotY += -rotateLimit;
-        else if(keyboardControls.pressed("down"))
-            rotY += rotateLimit;
-    }
-    else
-    {
-        var controller = Gamepad.getState(0);
-        if(controller.start.pressed === true)
-            window.location.reload();
-        if(Math.abs(controller.leftStickX) >= controllerThreshold)
-            x = controller.leftStickX*paddleSpeed;
-        if(Math.abs(controller.leftStickY) >= controllerThreshold)
-            y = controller.leftStickY*-paddleSpeed;
-        if(Math.abs(controller.rightStickX) >= controllerThreshold)
-            rotX = controller.rightStickX*-rotateLimit;
-        if(Math.abs(controller.rightStickY) >= controllerThreshold)
-        rotY = controller.rightStickY*rotateLimit;
-    }
-
-    updatePaddlePos(paddle1, x, y, paddleDist)
-
-    //updatePaddlePos(paddle2, -x, y, -paddleDist);
-    rotatePaddle(paddle1, rotX, rotY);
-    //rotatePaddle(paddle2, rotX, -rotY);
-    //paddle2.setLinearVelocity(new THREE.Vector3(-x, y, 0));
-    socket.emit('moved',{x:x,y:y,rotX:rotX,rotY:rotY});
-    //Check end zone
-    checkEndZone();
-    scene.simulate(); // run physics
-    var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-    camera.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
-    camera2.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
-    camera.updateProjectionMatrix();
-    camera2.updateProjectionMatrix();
-    
-    // setViewport parameters:
-    //  lower_left_x, lower_left_y, viewport_width, viewport_height
-
-    renderer.setViewport( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
-    
-    renderer.clear();
-    
-    // left side
-    renderer.setViewport( 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
-    renderer.render( scene, camera );
-    
-    // right side
-    renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
-    renderer.render( scene, camera2 );
-    if(ps1<MAX_SCORE&&ps2<MAX_SCORE){   
-      requestAnimationFrame( render );
-    }
-    else{
-        if(ps1===MAX_SCORE){
-            $("#win").html("One");
-            $("#lose").html("Two");
-        }
-        else if(ps2===MAX_SCORE){
-            $("#win").html("Two");
-            $("#lose").html("One");
-        }
-        $("#gameover").show();
-    }
-    
-};
-
-var checkEndZone = function(){
-   
-    if(ball.position.z > 505){
-        resetBall(ball, -1);
-        ps2++;
-        $("#ps2").html(ps2);
-    }else if(ball.position.z < -505){
-        resetBall(ball, 1);
-        ps1++;
-        $("#ps1").html(ps1);
-    }
-    
-}
-$(function(){
-    $("#play").click(function(){
-        $("#begin").hide();
-        paddleType = parseInt($("input[type='radio'][name='paddle']:checked").val());
-        MAX_SCORE  = parseInt($("#maxscore").val());
-        $("#bestOf").html(MAX_SCORE);
-        initScene();
-    });
 });
