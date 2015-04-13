@@ -3,7 +3,8 @@ var app = express()
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var player1 = 0;
+var player1;
+var player2;
 app.set('views', __dirname+"/views");
 app.engine('html', require('ejs').renderFile);
 
@@ -17,14 +18,8 @@ app.get('/test', function (req, res) {
 })
 
 io.on('connection', function(socket){
-   if(!player1){
-   	 socket.emit('playerid','one');
-   	 player1=1;
-   }
-   else{
-   	 socket.emit('playerid','two');
-   	 player1=0;
-   }
+ 
+   socket.emit('playerid',socket.id);
    socket.on('bounce', function(msg){
     io.emit('bounce', msg);
    });
