@@ -1,7 +1,7 @@
  'use strict';
 var initScene, render, renderer, scene, camera, box, ball, walls,camera2 ,ps1 = 0, ps2 = 0;
-var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY,playerid,reset =false;
-var paddleSpeed, rotateLimit, controllerThreshold,ready=false;
+var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY,playerid;
+var paddleSpeed, rotateLimit, controllerThreshold;
 var MAX_SCORE = 7;
 paddleType = 1;
 var socket = io();
@@ -10,38 +10,8 @@ socket.on('playerid',function(playerId){
     playerid = playerId;
     console.log(playerid);
 });
-socket.on('ready',function(req){
-    initScene();
-    if(ready){
-        socket.emit("begin","begin");
-    }
-    console.log(ready+" "+playerid);
-});
-socket.on("begin",function(begin){
-    requestAnimationFrame( render );
-    var vel = new THREE.Vector3(Math.random()*100+100,Math.random()*100+100,Math.random()*100+100);
-    if(playerid=="one")
-        socket.emit('start', vel);
-    console.log("begin");
-});  
-socket.on("start",function(newVel){
-    ball.position.set(0,250,0);
-    ball.__dirtyPosition = true;
-    reset = false;
-    if(playerid=="one"){
-        socket.emit('bounce', newVel);
-    }
-}); 
-socket.on("point1",function(){
-    ps1++;
-    $("#ps1").html(ps1);
 
-});
-socket.on("point2",function(){
-    ps2++;
-    $("#ps2").html(ps2);
-
-});
+      
 Physijs.scripts.worker = '/js/physijs_worker.js';
 Physijs.scripts.ammo = '/js/ammo.js';
 
@@ -132,17 +102,15 @@ function initScene() {
     socket.on('otherplayermove',function(data){
         var dist;
         if(playerid==='one'){
-            dist = -paddleDist;
+            dist = paddleDist;
         }
         else{
-            dist = paddleDist;
-        };
-        updatePaddlePos(paddle2, data.x, data.y, dist)
+            dist = -paddleDist;
+        }
+        updatePaddlePos(paddle2, data.x, data.y, dist);
         rotatePaddle(paddle2, data.rotX, data.rotY);
-    
-
     });
-    
+    requestAnimationFrame( render );
 
 };
 var count = 100;
@@ -191,26 +159,24 @@ render = function() {
     }
     var dist;
     if(playerid==='one'){
-        dist = paddleDist;
-        updatePaddlePos(paddle1, x, y, dist)
-        rotatePaddle(paddle1, -rotX, -rotY);
-        socket.emit('moved',{x:x,y:y,rotX:rotX,rotY:rotY});
+        dist = -paddleDist;
     }
     else{
-       
-        dist = -paddleDist;
-        updatePaddlePos(paddle1, -x, y, dist)
-        rotatePaddle(paddle1, rotX, rotY);
-        socket.emit('moved',{x:paddle1.position.x,y:paddle1.position.y,rotX:paddle1.rotation.rotX,rotY:paddle1.rotation.rotY});
+        dist = paddleDist;
     }
+    updatePaddlePos(paddle1, x, y, dist)
 
-   
+    //updatePaddlePos(paddle2, -x, y, -paddleDist);
+    rotatePaddle(paddle1, rotX, rotY);
+    //rotatePaddle(paddle2, rotX, -rotY);
+    //paddle2.setLinearVelocity(new THREE.Vector3(-x, y, 0));
+    socket.emit('moved',{x:x,y:y,rotX:rotX,rotY:rotY});
     //Check end zone
     checkEndZone();
     scene.simulate(); // run physics
     var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-    camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-    camera2.aspect =SCREEN_WIDTH / SCREEN_HEIGHT;
+    camera.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
+    camera2.aspect = 0.5 * SCREEN_WIDTH / SCREEN_HEIGHT;
     camera.updateProjectionMatrix();
     camera2.updateProjectionMatrix();
     
@@ -222,39 +188,23 @@ render = function() {
     renderer.clear();
     
     // left side
-    if(playerid=="one"){
-       // renderer.setViewport( 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
-        renderer.render( scene, camera );
-    }
-    else{
-        // right side
-        //renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
-        renderer.render( scene, camera2 );
-    }
+    renderer.setViewport( 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
+    renderer.render( scene, camera );
+    
+    // right side
+    renderer.setViewport( 0.5 * SCREEN_WIDTH + 1, 1,   0.5 * SCREEN_WIDTH - 2, SCREEN_HEIGHT - 2 );
+    renderer.render( scene, camera2 );
     if(ps1<MAX_SCORE&&ps2<MAX_SCORE){   
       requestAnimationFrame( render );
     }
     else{
         if(ps1===MAX_SCORE){
-            if(playerid=="one"){
-                $("#win").html("You Win!");
-                $("#lose").html("Player Two Loses");
-            }
-            else{
-                $("#win").html("Player One Wins");
-                $("#lose").html("You Lose");
-            }
+            $("#win").html("One");
+            $("#lose").html("Two");
         }
         else if(ps2===MAX_SCORE){
-           if(playerid=="one"){
-               
-                $("#win").html("Player Two Wins");
-                $("#lose").html("You Lose");
-            }
-            else{
-                $("#win").html("You Win!");
-                $("#lose").html("Player One Loses");
-            }
+            $("#win").html("Two");
+            $("#lose").html("One");
         }
         $("#gameover").show();
     }
@@ -262,17 +212,15 @@ render = function() {
 };
 
 var checkEndZone = function(){
-    if(playerid==="one"&&!reset){
-        if(ball.position.z > 520){
-            resetBall(ball, -1);
-            socket.emit("point2","");
-            reset=true;
-            
-        }else if(ball.position.z < -520){
-            resetBall(ball, 1);
-            socket.emit("point1","");
-            reset=true;
-        }
+   
+    if(ball.position.z > 505){
+        resetBall(ball, -1);
+        ps2++;
+        $("#ps2").html(ps2);
+    }else if(ball.position.z < -505){
+        resetBall(ball, 1);
+        ps1++;
+        $("#ps1").html(ps1);
     }
     
 }
@@ -282,8 +230,6 @@ $(function(){
         paddleType = parseInt($("input[type='radio'][name='paddle']:checked").val());
         MAX_SCORE  = parseInt($("#maxscore").val());
         $("#bestOf").html(MAX_SCORE);
-        ready=true;
-        socket.emit("ready","ready");
-
+        initScene();
     });
 });
