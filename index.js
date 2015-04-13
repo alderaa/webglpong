@@ -31,6 +31,22 @@ io.on('connection', function(socket){
    socket.on('moved',function(data){
    	socket.broadcast.emit('otherplayermove',data);
    });
+   socket.on('ready',function(data){
+   	socket.broadcast.emit('ready',data);
+   });
+   socket.on('begin',function(data){
+   	io.emit('begin',data);
+   });
+   socket.on('start',function(data){
+   	io.emit('start',data);
+   });
+   socket.on('point1',function(data){
+   	io.emit('point1',data);
+   });
+   socket.on('point2',function(data){
+   	io.emit('point2',data);
+   });
+   
    
 });
 
