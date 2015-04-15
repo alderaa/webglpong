@@ -1,7 +1,7 @@
 'use strict';
 
     Physijs.scripts.worker = 'js/physijs_worker.js';
-    Physijs.scripts.ammo = 'js/ammo.js';
+    Physijs.scripts.ammo = 'ammo.js';
 
     var initScene, render, renderer, scene, camera, box, balls, walls,camera2 ,ps1 = 0, ps2 = 0;
     var paddle1, paddle2, paddleType, paddleDist, keyboardControls, rotX, rotY;
